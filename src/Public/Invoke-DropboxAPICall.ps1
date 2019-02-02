@@ -4,15 +4,27 @@ Function Invoke-DropboxAPICall {
         [string]$Resource,
         [ValidateSet('Get','Post')]
         [string]$Method = 'Get',
-        [string]$body
+        [string]$body,
+        [hashtable]$Header,
+        [string]$subDomain = 'api',
+        [ValidateSet('application/json','text/plain','application/octet-stream','application/octet-stream; charset=utf-8')]
+        [string]$ContentType = 'application/json'
     )
-    $BaseURI = 'https://api.dropboxapi.com/2'
+    $BaseURI = "https://$subDomain.dropboxapi.com/2"
 
-    $headers = @{
+    $baseHeaders = @{
         'Authorization' = "Bearer $AccessToken"
-        'Content-Type' = 'application/json'
         'Accept' = 'application/json'
+        'Content-Type' = $ContentType
     }
-    $body
-    Invoke-RestMethod -Uri "$BaseURI/$Resource" -Method $Method -Headers $headers -Body $body -Verbose
+
+    ForEach($h in $header.GetEnumerator()){
+        $baseHeaders[$h.key] = $h.value
+    }
+
+    If($subDomain -eq 'content'){
+        Invoke-WebRequest -Uri "$BaseURI/$Resource" -Method $Method -Headers $baseheaders -Body $body -OutFile C:\tmp\image.jpg
+    }Else{
+        Invoke-RestMethod -Uri "$BaseURI/$Resource" -Method $Method -Headers $baseheaders -Body $body -Verbose
+    }
 }
