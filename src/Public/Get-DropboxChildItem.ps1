@@ -1,5 +1,5 @@
 # https://www.dropbox.com/developers/documentation/http/documentation#files-list_folder
-Function Get-DBFolderChildren {
+Function Get-DropboxChildItem {
     [cmdletbinding()]
     Param (
         [string]$Path,
@@ -29,5 +29,5 @@ Function Get-DBFolderChildren {
     ForEach($param in $PSBoundParameters.GetEnumerator() | Where-Object {$_.key -match '^Exclude'}){
         $body | Add-Member -MemberType NoteProperty -Name $folderChildrenParams[$param.key].ToString().ToLower() -Value $false
     }
-    Invoke-DropBoxAPICall -Resource 'files/list_folder' -Method Post -Body ($body | ConvertTo-Json)
+    (Invoke-DropBoxAPICall -Resource 'files/list_folder' -Method Post -Body ($body | ConvertTo-Json)).entries
 }
