@@ -38,7 +38,7 @@ Function Get-DropboxFile {
             If($PSCmdlet.ParameterSetName -eq 'ByPath'){
                 $item = Split-Path $Path -Leaf
             }ElseIf($PSCmdlet.ParameterSetName -eq 'ById'){
-                $item = (Get-DropboxFileMetadata -Id $Id).Name
+                $item = (Get-DropboxItemMetadata -Id $Id).Name
             }
             Invoke-DropboxAPICall -Resource $resource -Method Post -Header $header -subDomain content -ContentType 'application/octet-stream' -FilePath "$Destination\$item"
         }
