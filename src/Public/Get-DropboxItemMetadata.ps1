@@ -1,4 +1,4 @@
-Function Get-DropboxFileMetadata {
+Function Get-DropboxItemMetadata {
     [cmdletbinding()]
     Param(
         [Parameter(
