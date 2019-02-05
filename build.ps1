@@ -16,7 +16,7 @@ $env:ModuleName = "PSDropbox"
 $env:Author = "Anthony Howell"
 $env:ModuleVersion = "0.0.1"
 [hashtable]$global:PrivateData = @{
-    ProjectUri = 'https://github.com/ThePoShWolf/PSDropbox'
+    ProjectUri = 'https://github.com/TechSnips/PSDropbox'
 }
 # Builds the module by invoking psake on the build.psake.ps1 script.
 Invoke-PSake $PSScriptRoot\psake.ps1 -taskList $Task
