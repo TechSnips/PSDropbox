@@ -1,10 +1,11 @@
 Function Invoke-DropboxAPICall {
+    [cmdletbinding()]
     Param (
         [string]$AccessToken = $AuthConfig.AccessToken,
         [string]$Resource,
         [ValidateSet('Get','Post')]
         [string]$Method = 'Get',
-        [string]$body,
+        [string]$Body,
         [hashtable]$Header,
         [string]$subDomain = 'api',
         [ValidateSet('application/json','text/plain','application/octet-stream','application/octet-stream; charset=utf-8')]
@@ -28,6 +29,6 @@ Function Invoke-DropboxAPICall {
     If($subDomain -eq 'content'){
         Invoke-WebRequest -Uri "$BaseURI/$Resource" -Method $Method -Headers $baseheaders -Body $body -OutFile $FilePath
     }Else{
-        Invoke-RestMethod -Uri "$BaseURI/$Resource" -Method $Method -Headers $baseheaders -Body $body -Verbose
+        Invoke-RestMethod -Uri "$BaseURI/$Resource" -Method $Method -Headers $baseheaders -Body $body
     }
 }
