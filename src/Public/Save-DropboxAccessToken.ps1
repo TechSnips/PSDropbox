@@ -6,7 +6,8 @@ Function Save-DropboxUserToken {
         [string]$AppSecret,
         [string]$RedirectURI
     )
-    $baseuri = 'https://api.dropboxapi.com/oauth2/token'
+    #$baseuri = 'https://api.dropboxapi.com/oauth2/token'
+    $resource = 'oauth2/token'
 
     $encodedRedirect = [System.Web.HttpUtility]::UrlEncode($RedirectURI)
 
@@ -24,4 +25,6 @@ Function Save-DropboxUserToken {
     ) -join '&'
 
     $resp = Invoke-RestMethod -Uri $baseuri -Method Post -Headers $headers -Body $body
+
+    $resp.access_token
 }
