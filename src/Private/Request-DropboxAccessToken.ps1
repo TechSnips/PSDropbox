@@ -1,4 +1,4 @@
-Function Save-DropboxUserToken {
+Function Request-DropboxAccessToken {
     Param(
         [ValidateNotNullOrEmpty()]
         [string]$AuthorizationCode = $AuthConfig.AuthCode,
@@ -6,8 +6,7 @@ Function Save-DropboxUserToken {
         [string]$AppSecret,
         [string]$RedirectURI
     )
-    #$baseuri = 'https://api.dropboxapi.com/oauth2/token'
-    $resource = 'oauth2/token'
+    $baseuri = 'https://api.dropboxapi.com/oauth2/token'
 
     $encodedRedirect = [System.Web.HttpUtility]::UrlEncode($RedirectURI)
 
