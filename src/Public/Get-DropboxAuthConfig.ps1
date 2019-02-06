@@ -13,7 +13,7 @@ Function Get-DropboxAuthConfig {
         }
         $script:AuthConfig = [pscustomobject]@{}
         ForEach($property in $encryptedAuth.psobject.Properties){
-            $AuthConfig | Add-Member -MemberType NoteProperty -Name "$($property.name)" -Value [pscredential]::New('user',(ConvertTo-SecureString $property.value)).GetNetworkCredential().password
+            $AuthConfig | Add-Member -MemberType NoteProperty -Name $property.name -Value ([pscredential]::New('user',(ConvertTo-SecureString $property.value)).GetNetworkCredential().password)
         }
         If(-not ($Silent.IsPresent)){
             $AuthConfig

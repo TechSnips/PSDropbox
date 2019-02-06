@@ -4,10 +4,10 @@ Function Save-DropboxAuthConfig {
     )
     $dir = Get-DropboxCredentialSavePath
     If(-not(Test-Path $dir -PathType Container)){
-        New-Item $dir -ItemType Directory
+        New-Item $dir -ItemType Directory | Out-Null
     }
     If(-not(Test-Path $dir\credentials.json -PathType Leaf)){
-        New-Item $dir\credentials.json -ItemType File
+        New-Item $dir\credentials.json -ItemType File | Out-Null
     }
     $encryptedAuth = @{}
     ForEach($property in $AuthConfig.PSobject.Properties){
