@@ -1,129 +1,4 @@
-Function Get-DropboxCredentialSavePath {
-    Param (
-
-    )
-    If($PSVersionTable.PSVersion.Major -ge 6){
-        # PS Core
-        If($IsLinux){
-            $saveDir = $env:HOME
-        }ElseIf($IsWindows){
-            $saveDir = $env:USERPROFILE
-        }
-    }Else{
-        # Windows PS
-        $saveDir = $env:USERPROFILE
-    }
-    "$saveDir\.psdropbox"
-}
-Function Get-LastError {
-    Param (
-
-    )
-    $result = $error[0].Exception.Response.GetResponseStream()
-    $reader = New-Object System.IO.StreamReader($result)
-    $reader.BaseStream.Position = 0
-    $reader.DiscardBufferedData()
-    $reader.ReadToEnd()
-}
-Function Request-DropboxAccessToken {
-    Param(
-        [ValidateNotNullOrEmpty()]
-        [string]$AuthorizationCode = $AuthConfig.AuthCode,
-        [string]$AppKey,
-        [string]$AppSecret,
-        [string]$RedirectURI
-    )
-    $baseuri = 'https://api.dropboxapi.com/oauth2/token'
-
-    $encodedRedirect = [System.Web.HttpUtility]::UrlEncode($RedirectURI)
-
-    $encodedAuth = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("$AppKey`:$AppSecret"))
-
-    $headers = @{
-        'Content-Type' = 'application/x-www-form-urlencoded'
-        Authorization = "Basic $encodedAuth"
-    }
-
-    $body = @(
-        "code=$AuthorizationCode"
-        "grant_type=authorization_code"
-        "redirect_uri=$encodedRedirect"
-    ) -join '&'
-
-    $resp = Invoke-RestMethod -Uri $baseuri -Method Post -Headers $headers -Body $body
-
-    $resp.access_token
-}
-Add-Type -AssemblyName System.Web
-Add-Type -AssemblyName System.Windows.Forms
-Function Request-DropboxAuthorizationCode {
-    Param (
-        [string]$AppKey,
-        [string]$AppSecret,
-        [string]$RedirectURI
-    )
-    $encodedRedirect = [System.Web.HttpUtility]::UrlEncode($RedirectURI)
-    $encodedKey = [System.Web.HttpUtility]::UrlEncode($AppKey)
-    $baseUri = 'https://www.dropbox.com/oauth2/authorize'
-    $parameters = "client_id=$encodedKey&redirect_uri=$encodedRedirect&response_type=code"
-    $uri = "$baseUri`?$parameters"
-
-    # Build a form to use with our web object
-    $Form = New-Object -TypeName 'System.Windows.Forms.Form' -Property @{
-        Width = 680
-        Height = 640
-    }
-
-    # Build the web object to brows to the logon uri
-    $Web = New-Object -TypeName 'System.Windows.Forms.WebBrowser' -Property @{
-        Width = 680
-        Height = 640
-        Url = $uri
-    }
-
-    # Add the document completed script to detect when the code is in the uri
-    $DocumentCompleted_Script = {
-        if ($web.Url.AbsoluteUri -match "error=[^&]*|code=[^&]*") {
-            $form.Close()
-        }
-    }
-
-    # Add controls to the form
-    $web.ScriptErrorsSuppressed = $true
-    $web.Add_DocumentCompleted($DocumentCompleted_Script)
-    $form.Controls.Add($web)
-    $form.Add_Shown({ $form.Activate() })
-
-    # Run the form
-    [void]$form.ShowDialog()
-
-    # Parse the output
-    $QueryOutput = [System.Web.HttpUtility]::ParseQueryString($web.Url.Query)
-    $Response = @{ }
-    foreach ($key in $queryOutput.Keys) {
-        $Response["$key"] = $QueryOutput[$key]
-    }
-
-    $Response
-}
-Function Save-DropboxAuthConfig {
-    Param(
-
-    )
-    $dir = Get-DropboxCredentialSavePath
-    If(-not(Test-Path $dir -PathType Container)){
-        New-Item $dir -ItemType Directory | Out-Null
-    }
-    If(-not(Test-Path $dir\credentials.json -PathType Leaf)){
-        New-Item $dir\credentials.json -ItemType File | Out-Null
-    }
-    $encryptedAuth = @{}
-    ForEach($property in $AuthConfig.PSobject.Properties){
-        $encryptedAuth."$($property.Name)" = (ConvertFrom-SecureString (ConvertTo-SecureString $property.Value -AsPlainText -Force))
-    }
-    $encryptedAuth | ConvertTo-Json | Set-Content $dir\credentials.json
-}
-Function Get-DropboxAuthConfig {
+﻿Function Get-DropboxAuthConfig {
     Param(
         [switch]$Silent
     )
@@ -352,4 +227,129 @@ Function Invoke-DropboxAuthentication {
     If($Passthru.IsPresent){
         $AuthConfig
     }
+}
+Function Get-DropboxCredentialSavePath {
+    Param (
+
+    )
+    If($PSVersionTable.PSVersion.Major -ge 6){
+        # PS Core
+        If($IsLinux){
+            $saveDir = $env:HOME
+        }ElseIf($IsWindows){
+            $saveDir = $env:USERPROFILE
+        }
+    }Else{
+        # Windows PS
+        $saveDir = $env:USERPROFILE
+    }
+    "$saveDir\.psdropbox"
+}
+Function Get-LastError {
+    Param (
+
+    )
+    $result = $error[0].Exception.Response.GetResponseStream()
+    $reader = New-Object System.IO.StreamReader($result)
+    $reader.BaseStream.Position = 0
+    $reader.DiscardBufferedData()
+    $reader.ReadToEnd()
+}
+Function Request-DropboxAccessToken {
+    Param(
+        [ValidateNotNullOrEmpty()]
+        [string]$AuthorizationCode = $AuthConfig.AuthCode,
+        [string]$AppKey,
+        [string]$AppSecret,
+        [string]$RedirectURI
+    )
+    $baseuri = 'https://api.dropboxapi.com/oauth2/token'
+
+    $encodedRedirect = [System.Web.HttpUtility]::UrlEncode($RedirectURI)
+
+    $encodedAuth = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("$AppKey`:$AppSecret"))
+
+    $headers = @{
+        'Content-Type' = 'application/x-www-form-urlencoded'
+        Authorization = "Basic $encodedAuth"
+    }
+
+    $body = @(
+        "code=$AuthorizationCode"
+        "grant_type=authorization_code"
+        "redirect_uri=$encodedRedirect"
+    ) -join '&'
+
+    $resp = Invoke-RestMethod -Uri $baseuri -Method Post -Headers $headers -Body $body
+
+    $resp.access_token
+}
+Add-Type -AssemblyName System.Web
+Add-Type -AssemblyName System.Windows.Forms
+Function Request-DropboxAuthorizationCode {
+    Param (
+        [string]$AppKey,
+        [string]$AppSecret,
+        [string]$RedirectURI
+    )
+    $encodedRedirect = [System.Web.HttpUtility]::UrlEncode($RedirectURI)
+    $encodedKey = [System.Web.HttpUtility]::UrlEncode($AppKey)
+    $baseUri = 'https://www.dropbox.com/oauth2/authorize'
+    $parameters = "client_id=$encodedKey&redirect_uri=$encodedRedirect&response_type=code"
+    $uri = "$baseUri`?$parameters"
+
+    # Build a form to use with our web object
+    $Form = New-Object -TypeName 'System.Windows.Forms.Form' -Property @{
+        Width = 680
+        Height = 640
+    }
+
+    # Build the web object to brows to the logon uri
+    $Web = New-Object -TypeName 'System.Windows.Forms.WebBrowser' -Property @{
+        Width = 680
+        Height = 640
+        Url = $uri
+    }
+
+    # Add the document completed script to detect when the code is in the uri
+    $DocumentCompleted_Script = {
+        if ($web.Url.AbsoluteUri -match "error=[^&]*|code=[^&]*") {
+            $form.Close()
+        }
+    }
+
+    # Add controls to the form
+    $web.ScriptErrorsSuppressed = $true
+    $web.Add_DocumentCompleted($DocumentCompleted_Script)
+    $form.Controls.Add($web)
+    $form.Add_Shown({ $form.Activate() })
+
+    # Run the form
+    [void]$form.ShowDialog()
+
+    # Parse the output
+    $QueryOutput = [System.Web.HttpUtility]::ParseQueryString($web.Url.Query)
+    $Response = @{ }
+    foreach ($key in $queryOutput.Keys) {
+        $Response["$key"] = $QueryOutput[$key]
+    }
+
+    $Response
+}
+Function Save-DropboxAuthConfig {
+    Param(
+
+    )
+    $dir = Get-DropboxCredentialSavePath
+    If(-not(Test-Path $dir -PathType Container)){
+        New-Item $dir -ItemType Directory | Out-Null
+    }
+    If(-not(Test-Path $dir\credentials.json -PathType Leaf)){
+        New-Item $dir\credentials.json -ItemType File | Out-Null
+    }
+    $encryptedAuth = @{}
+    ForEach($property in $AuthConfig.PSobject.Properties){
+        $encryptedAuth."$($property.Name)" = (ConvertFrom-SecureString (ConvertTo-SecureString $property.Value -AsPlainText -Force))
+    }
+    $encryptedAuth | ConvertTo-Json | Set-Content $dir\credentials.json
 }

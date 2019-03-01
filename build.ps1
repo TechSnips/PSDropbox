@@ -1,22 +1,14 @@
-#Requires -Modules psake
 [cmdletbinding()]
 param(
-    [string[]]$Task = 'manual'
+    [string[]]$Task = 'ModuleBuild'
 )
 
-$DependentModules = @('Pester','Psake','PlatyPS')
+$DependentModules = @('PSDeploy','InvokeBuild') # TODO pester
 Foreach ($Module in $DependentModules){
     If (-not (Get-Module $module -ListAvailable)){
-        Install-Module -name $Module -Scope CurrentUser
+        Install-Module -name $Module -Scope CurrentUser -Force
     }
     Import-Module $module -ErrorAction Stop
 }
-$env:ModuleTempDir = "$PSScriptRoot\build" #$env:TEMP
-$env:ModuleName = "PSDropbox"
-$env:Author = "Anthony Howell"
-$env:ModuleVersion = "0.0.1"
-[hashtable]$global:PrivateData = @{
-    ProjectUri = 'https://github.com/TechSnips/PSDropbox'
-}
-# Builds the module by invoking psake on the build.psake.ps1 script.
-Invoke-PSake $PSScriptRoot\psake.ps1 -taskList $Task
+
+Invoke-Build $PSScriptRoot\PSDropbox.build.ps1 -Task $Task
